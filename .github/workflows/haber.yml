@@ -1,0 +1,28 @@
+name: Haber Bot
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write config
+        env:
+          CONFIG_JSON: ${{ secrets.HABER_CONFIG }}
+        run: printf '%s\n' "$CONFIG_JSON" > config.json
+
+      - name: Run
+        run: python main.py

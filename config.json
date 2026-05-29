@@ -1,0 +1,33 @@
+{
+  "check_interval_minutes": 30,
+  "telegram": {
+    "enabled": true,
+    "bot_token": "8891973025:AAGeca5PKACkfMZkXFjGBQoNNUKF77I5I6Y",
+    "channels": {
+      "teknoloji": {"id": "-1003875932727", "label": "📱 Teknoloji", "channel": "@technewstr"},
+      "spor": {"id": "-1003982567394", "label": "⚽ Spor", "channel": "@sporglobal"},
+      "saglik": {"id": "-1003913295668", "label": "🩺 Sağlık", "channel": "@wellnesstr"},
+      "finans": {"id": "", "label": "💰 Finans", "channel": ""},
+      "haber": {"id": "-1003910677485", "label": "📰 Haber", "channel": "@haberehberi"}
+    }
+  },
+  "feeds": {
+    "teknoloji": [
+      "https://www.shiftdelete.net/feed"
+    ],
+    "spor": [
+      "https://www.hurriyet.com.tr/rss/spor"
+    ],
+    "saglik": [
+      "https://www.hurriyet.com.tr/rss/saglik"
+    ],
+    "finans": [
+      "https://www.bloomberght.com/rss",
+      "https://www.hurriyet.com.tr/rss/ekonomi",
+      "https://www.dunya.com/rss"
+    ],
+    "haber": [
+      "https://www.hurriyet.com.tr/rss/gundem"
+    ]
+  }
+}
