@@ -11,23 +11,23 @@
       "haber": {"id": "-1003910677485", "label": "📰 Haber", "channel": "@haberehberi"}
     }
   },
-  "feeds": {
-    "teknoloji": [
-      "https://www.shiftdelete.net/feed"
-    ],
-    "spor": [
-      "https://www.hurriyet.com.tr/rss/spor"
-    ],
-    "saglik": [
-      "https://www.hurriyet.com.tr/rss/saglik"
-    ],
-    "finans": [
-      "https://www.bloomberght.com/rss",
-      "https://www.hurriyet.com.tr/rss/ekonomi",
-      "https://www.dunya.com/rss"
-    ],
-    "haber": [
-      "https://www.hurriyet.com.tr/rss/gundem"
+  "kusadasi": {
+    "enabled": true,
+    "check_interval_minutes": 15,
+    "channel_id": "-1003887241353",
+    "channel_name": "@adahabertr",
+    "feeds": [
+      {"url": "https://www.ajanskusadasi.com/rss/genel-0", "label": "Gündem"},
+      {"url": "https://www.ajanskusadasi.com/rss/asayis-5", "label": "Asayiş"},
+      {"url": "https://www.ajanskusadasi.com/rss/turizm-6", "label": "Turizm"},
+      {"url": "https://www.ajanskusadasi.com/rss/gundem-1", "label": "Öne Çıkan"}
     ]
+  },
+  "feeds": {
+    "teknoloji": ["https://www.shiftdelete.net/feed"],
+    "spor": ["https://www.hurriyet.com.tr/rss/spor"],
+    "saglik": ["https://www.hurriyet.com.tr/rss/saglik"],
+    "finans": ["https://www.bloomberght.com/rss", "https://www.hurriyet.com.tr/rss/ekonomi", "https://www.dunya.com/rss"],
+    "haber": ["https://www.hurriyet.com.tr/rss/gundem"]
   }
 }

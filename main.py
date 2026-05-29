@@ -1,11 +1,9 @@
 import asyncio
 import json
-import os
 import re
 import feedparser
 import httpx
 from datetime import datetime
-from pathlib import Path
 
 
 def load_config():
@@ -28,18 +26,35 @@ def fetch_feed(url: str) -> list:
             link = entry.get("link", "")
             summary = clean_html(entry.get("summary", entry.get("description", "")))
             pub_date = entry.get("published", "")
-            entries.append({"title": title, "link": link, "summary": summary, "date": pub_date})
+            if title:
+                entries.append({"title": title, "link": link, "summary": summary, "date": pub_date})
         return entries
     except:
         return []
 
 
-def format_post(entries: list, label: str) -> str:
+def format_category(entries: list, label: str) -> str:
     lines = [f"<b>{label}</b>\n"]
     for e in entries[:3]:
         lines.append(f"<b>{e['title']}</b>")
         if e["summary"][:80]:
             lines.append(f"{e['summary'][:80]}...")
+        lines.append(f"<a href='{e['link']}'>Detay</a>\n")
+    return "\n".join(lines)
+
+
+def format_kusadasi(all_entries: list) -> str:
+    unique = []
+    seen = set()
+    for e in all_entries:
+        if e["title"] not in seen:
+            seen.add(e["title"])
+            unique.append(e)
+    lines = ["<b>📍 KUŞADASI HABER</b>\n"]
+    for e in unique[:5]:
+        lines.append(f"<b>{e['title']}</b>")
+        if e["summary"][:100]:
+            lines.append(f"{e['summary'][:100]}...")
         lines.append(f"<a href='{e['link']}'>Detay</a>\n")
     return "\n".join(lines)
 
@@ -60,52 +75,84 @@ async def send_telegram(bot_token: str, chat_id: str, message: str):
     return r.status_code == 200
 
 
-async def run_once():
-    config = load_config()
-    bot_token = config["telegram"].get("bot_token", "")
-
-    if not bot_token:
-        print("❌ Bot token yok")
-        return
-
+async def run_categories(config, bot_token):
     for category, feeds in config["feeds"].items():
         channel = config["telegram"]["channels"].get(category)
         if not channel or not channel.get("id"):
             continue
-
         chat_id = channel["id"]
         label = channel.get("label", category.upper())
         all_entries = []
-
-        for feed_url in feeds:
-            entries = fetch_feed(feed_url)
-            all_entries.extend(entries)
-
+        for feed_url in feeds or []:
+            all_entries.extend(fetch_feed(feed_url))
         if not all_entries:
-            print(f"  {label}: haber bulunamadi")
+            print(f"  {label}: haber yok")
             continue
-
-        all_entries.sort(key=lambda x: x["date"], reverse=True)
         unique = []
         seen = set()
         for e in all_entries:
             if e["title"] not in seen:
                 seen.add(e["title"])
                 unique.append(e)
-
         if not unique:
             continue
-
-        msg = format_post(unique[:3], label)
+        msg = format_category(unique[:3], label)
         ok = await send_telegram(bot_token, chat_id, msg)
-        status = "✅" if ok else "❌"
-        print(f"{status} {label} -> {channel['channel']} ({len(unique[:3])} haber)")
+        print(f"{'✅' if ok else '❌'} {label} -> {channel['channel']} ({len(unique[:3])} haber)")
 
-    print(f"\n[{datetime.now().strftime('%d.%m.%Y %H:%M')}] Tamamlandi")
+
+async def run_kusadasi(config, bot_token):
+    ks = config.get("kusadasi")
+    if not ks or not ks.get("enabled"):
+        return
+    chat_id = ks.get("channel_id")
+    if not chat_id:
+        return
+    all_entries = []
+    for feed in ks.get("feeds", []):
+        entries = fetch_feed(feed["url"])
+        all_entries.extend(entries)
+    if not all_entries:
+        print(f"  Kuşadası: haber yok")
+        return
+    msg = format_kusadasi(all_entries)
+    ok = await send_telegram(bot_token, chat_id, msg)
+    print(f"{'✅' if ok else '❌'} Kuşadası -> {ks.get('channel_name','?')} (toplam haber)")
+
+
+async def run_once():
+    config = load_config()
+    bot_token = config["telegram"].get("bot_token", "")
+    if not bot_token:
+        print("❌ Bot token yok")
+        return
+    print(f"[{datetime.now().strftime('%d.%m.%Y %H:%M')}] Başlatıldı")
+    await run_categories(config, bot_token)
+    await run_kusadasi(config, bot_token)
+    print(f"[{datetime.now().strftime('%d.%m.%Y %H:%M')}] Tamamlandi\n")
 
 
 def main():
-    asyncio.run(run_once())
+    import sys
+    args = set(sys.argv[1:])
+    config = load_config()
+    bot_token = config["telegram"].get("bot_token", "")
+    if not bot_token:
+        print("❌ Bot token yok")
+        return
+
+    run_cats = not args or "--categories" in args
+    run_ks = not args or "--kusadasi" in args
+
+    async def run():
+        print(f"[{datetime.now().strftime('%d.%m.%Y %H:%M')}] Başlatıldı")
+        if run_cats:
+            await run_categories(config, bot_token)
+        if run_ks:
+            await run_kusadasi(config, bot_token)
+        print(f"[{datetime.now().strftime('%d.%m.%Y %H:%M')}] Tamamlandi\n")
+
+    asyncio.run(run())
 
 
 if __name__ == "__main__":
